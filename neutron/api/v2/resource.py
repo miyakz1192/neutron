@@ -30,6 +30,7 @@ from neutron.openstack.common import gettextutils
 from neutron.openstack.common import log as logging
 from neutron import wsgi
 
+from neutron.openstack.common import local
 
 LOG = logging.getLogger(__name__)
 
@@ -84,7 +85,17 @@ def Resource(controller, faults=None, deserializers=None, serializers=None):
 
             method = getattr(controller, action)
 
+            try:
+              dict_cont = getattr(local.store, 'context', None).to_dict()
+            except Exception as e:
+              LOG.info(_('N-AUDIT dict_cont failed'))
+              dict_cont = {}
+
+            LOG.info(_('N-AUDIT START: uri=%(request)s webarg=%(args)s context=%(context)s'),
+                {'request': request.url, 'args': args, 'context': dict_cont})
             result = method(request=request, **args)
+            LOG.info(_('N-AUDIT END: uri=%(request)s webarg=%(res)s context=%(context)s'),
+                     {'request': request.url,'res': result, 'context': dict_cont})
         except (exceptions.NeutronException,
                 netaddr.AddrFormatError) as e:
             for fault in faults:
