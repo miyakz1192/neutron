@@ -562,6 +562,7 @@ def multicall(conf, context, topic, msg, timeout, connection_pool):
         if not connection_pool.reply_proxy:
             connection_pool.reply_proxy = ReplyProxy(conf, connection_pool)
     msg.update({'_reply_q': connection_pool.reply_proxy.get_reply_q()})
+    LOG.info('REPLAY_QUEUE is %s' % (connection_pool.reply_proxy.get_reply_q()))
     wait_msg = MulticallProxyWaiter(conf, msg_id, timeout, connection_pool)
     with ConnectionContext(conf, connection_pool) as conn:
         conn.topic_send(topic, rpc_common.serialize_msg(msg), timeout)
