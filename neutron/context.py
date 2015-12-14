@@ -77,6 +77,8 @@ class ContextBase(common_context.RequestContext):
         if overwrite or not hasattr(local.store, 'context'):
             local.store.context = self
 
+        self.logstamp = None
+
         # Log only once the context has been configured to prevent
         # format errors.
         if kwargs:
@@ -159,6 +161,11 @@ class Context(ContextBase):
             self._session = db_api.get_session()
         return self._session
 
+#    def get_logstamp(self):
+#        return self.logstamp
+#
+#    def set_logstamp(self, logstamp_):
+#        self.logstamp = logstamp_
 
 def get_admin_context(read_deleted="no", load_admin_roles=True):
     return Context(user_id=None,

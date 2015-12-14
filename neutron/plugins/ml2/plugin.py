@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 import contextlib
+import uuid
 
 from oslo.config import cfg
 from sqlalchemy import exc as sql_exc
@@ -625,34 +626,53 @@ class Ml2Plugin(db_base_plugin_v2.NeutronDbPluginV2,
     def create_port(self, context, port):
         attrs = port['port']
         attrs['status'] = const.PORT_STATUS_DOWN
+        #uuid_stamp = uuid.uuid4()
+        uuid_stamp = context.logstamp
+#        import pdb
+#        pdb.set_trace()
+        LOG.info(_("[DEBUG1] %(uuid)s")%{'uuid': uuid_stamp})
 
         session = context.session
         with session.begin(subtransactions=True):
+            LOG.info(_("[DEBUG2] %(uuid)s")%{'uuid': uuid_stamp})
             self._ensure_default_security_group_on_port(context, port)
+            LOG.info(_("[DEBUG3] %(uuid)s")%{'uuid': uuid_stamp})
             sgids = self._get_security_groups_on_port(context, port)
+            LOG.info(_("[DEBUG4] %(uuid)s")%{'uuid': uuid_stamp})
             dhcp_opts = port['port'].get(edo_ext.EXTRADHCPOPTS, [])
+            LOG.info(_("[DEBUG5] %(uuid)s")%{'uuid': uuid_stamp})
             result = super(Ml2Plugin, self).create_port(context, port)
+            LOG.info(_("[DEBUG6] %(uuid)s")%{'uuid': uuid_stamp})
             self._process_port_create_security_group(context, result, sgids)
+            LOG.info(_("[DEBUG7] %(uuid)s")%{'uuid': uuid_stamp})
             network = self.get_network(context, result['network_id'])
+            LOG.info(_("[DEBUG8] %(uuid)s")%{'uuid': uuid_stamp})
             mech_context = driver_context.PortContext(self, context, result,
                                                       network)
+            LOG.info(_("[DEBUG9] %(uuid)s")%{'uuid': uuid_stamp})
             self._process_port_binding(mech_context, attrs)
+            LOG.info(_("[DEBUG10] %(uuid)s")%{'uuid': uuid_stamp})
             result[addr_pair.ADDRESS_PAIRS] = (
                 self._process_create_allowed_address_pairs(
                     context, result,
                     attrs.get(addr_pair.ADDRESS_PAIRS)))
+            LOG.info(_("[DEBUG11] %(uuid)s")%{'uuid': uuid_stamp})
             self._process_port_create_extra_dhcp_opts(context, result,
                                                       dhcp_opts)
+            LOG.info(_("[DEBUG12] %(uuid)s")%{'uuid': uuid_stamp})
             self.mechanism_manager.create_port_precommit(mech_context)
 
         try:
             self.mechanism_manager.create_port_postcommit(mech_context)
+            LOG.info(_("[DEBUG13] %(uuid)s")%{'uuid': uuid_stamp})
         except ml2_exc.MechanismDriverError:
             with excutils.save_and_reraise_exception():
                 LOG.error(_("mechanism_manager.create_port_postcommit "
                             "failed, deleting port '%s'"), result['id'])
                 self.delete_port(context, result['id'])
+        LOG.info(_("[DEBUG14] %(uuid)s")%{'uuid': uuid_stamp})
         self.notify_security_groups_member_updated(context, result)
+        LOG.info(_("[DEBUG15] %(uuid)s")%{'uuid': uuid_stamp})
         return result
 
     def update_port(self, context, id, port):

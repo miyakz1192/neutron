@@ -133,6 +133,8 @@ class MetadataProxyHandler(object):
             device_id=router_id,
             device_owner=n_const.DEVICE_OWNER_ROUTER_INTF)['ports']
         self.auth_info = qclient.get_auth_info()
+#        import pdb
+#        pdb.set_trace()
         return tuple(p['network_id'] for p in internal_ports)
 
     @utils.cache_method_results

@@ -445,6 +445,7 @@ class Controller(object):
                 return notify({self._collection: objs})
             else:
                 kwargs.update({self._resource: body})
+                request.context.logstamp = request.environ["uuid"]
                 obj = obj_creator(request.context, **kwargs)
 
                 self._nova_notifier.send_network_change(
